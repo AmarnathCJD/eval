@@ -4,7 +4,7 @@ import os, io, sys
 
 TOKEN = input("TOKEN:" )
 API_KEY = int(input("API_KEY:" ))
-API_HASH = intput("API_HASH:")
+API_HASH = input("API_HASH:")
 MASTERS = [1252058587, 1833850637]
 
 b = TelegramClient (None, API_KEY, API_HASH)
