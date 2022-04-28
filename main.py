@@ -16,7 +16,7 @@ def is_auth(user_id: int):
     return False
  return True
 
-@b.on(events.NewMessage(pattern="^(?i)[!?/]eval" func=lambda e: is_auth(e.sender_id)))
+@b.on(events.NewMessage(pattern="^(?i)[!?/]eval", func=lambda e: is_auth(e.sender_id)))
 async def eval_(e):
  cmd = e.text.split("", 2)
  if len(cmd) == 1:
@@ -62,7 +62,7 @@ async def aexec(code, event):
     return await locals()["__aexec"](event, event.client)
 
 
-@b.on(events.NewMessage(pattern="^(?i)[!?/](bash|exec)" func=lambda e: is_auth(e.sender_id)))
+@b.on(events.NewMessage(pattern="^(?i)[!?/](bash|exec)", func=lambda e: is_auth(e.sender_id)))
 async def __exec(e):
     try:
         cmd = e.text.split(maxsplit=1)[1]
