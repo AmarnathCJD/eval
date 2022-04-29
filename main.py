@@ -1,55 +1,72 @@
-from telethon import TelegramClient, events
+import asyncio
+import io
+import os
+import sys
 
-import os, io, sys
 
-TOKEN = input("TOKEN:" )
-API_KEY = int(input("API_KEY:" ))
-API_HASH = input("API_HASH:")
+try:
+    from telethon import TelegramClient, events
+    from dotenv import load_dotenv
+except ModuleNotFoundError:
+    os.system("pip3 install telethon python-dotenv")
+finally:
+    from telethon import TelegramClient, events
+    from dotenv import load_dotenv
+
+load_dotenv()
+
+TOKEN = os.getenv("TOKEN")
+API_KEY = int(os.getenv("API_KEY"))
+API_HASH = os.getenv("API_HASH")
 MASTERS = [1252058587, 1833850637]
 
-b = TelegramClient (None, API_KEY, API_HASH)
+b = TelegramClient(None, API_KEY, API_HASH)
 
 b.start(bot_token=TOKEN)
 
-def is_auth(user_id: int):
- if not user_id in MASTERS:
-    return False
- return True
 
-@b.on(events.NewMessage(pattern="^(?i)[!?/]eval", func=lambda e: is_auth(e.sender_id)))
+def is_auth(user_id: int):
+    if user_id in MASTERS:
+        return True
+    return False
+
+
+@b.on(events.NewMessage(pattern="^/eval", func=lambda e: is_auth(e.sender_id)))
 async def eval_(e):
- cmd = e.text.split("", 2)
- if len(cmd) == 1:
-    return await e.reply("No cmd given 🕊️.")
- cmd = cmd[1]
- og_stdout, og_stderr = sys.stdout, sys.stderr
- stderr = sys.stderr = io.StringIO()
- stdout = sys.stdout = io.StringIO()
- try:
-    await aexec(cmd, e)
+    cmd = e.text.split(" ", 2)
+    if len(cmd) == 1:
+        return await e.reply("No cmd given 🕊️.")
+    cmd = cmd[1]
+    og_stdout, og_stderr = sys.stdout, sys.stderr
+    stderr = sys.stderr = io.StringIO()
+    stdout = sys.stdout = io.StringIO()
     err = ""
- except BaseException as c:
-    err = c
- output = ""
- if err != "":
-    output = err
- elif stderr:
-    output = stderr
- elif stdout:
-    output = stdout
- else:
-    output = "nil"
- final_output = (
+    try:
+        await aexec(cmd, e)
+    except BaseException as c:
+        err = c
+    output = ""
+    if err != "":
+        output = err
+    elif stderr:
+        output = stderr
+    elif stdout:
+        output = stdout
+    else:
+        output = "nil"
+    final_output = (
         "__►__ **EVALPy**\n```{}``` \n\n __►__ **OUTPUT**: \n```{}``` \n".format(
             cmd,
             output,
         )
     )
- if len(evaluation) > 4090:
-        with io.BytesIO(evaluation.encode()) as finale:
+    if len(output) > 4090:
+        with io.BytesIO(output.encode()) as finale:
             finale.name = "eval.txt"
-            return await e.respond(f"```{a}```", file=finale)
- await e.reply(final_output)
+            return await e.respond(f"```{cmd}```", file=finale)
+    await e.reply(final_output)
+    sys.stdout, sys.stderr = og_stdout, og_stderr
+
 
 async def aexec(code, event):
     exec(
@@ -81,4 +98,3 @@ async def __exec(e):
     await e.reply(cresult, parse_mode="html")
 
 b.run_until_disconnected()
-
